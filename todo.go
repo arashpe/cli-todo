@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/alexeyco/simpletable"
 )
 
 type item struct {
@@ -81,8 +83,37 @@ func (t *Todos) Store(filename string) error {
 }
 
 func (t *Todos) Print() {
-	for i, item := range *t {
-		i++
-		fmt.Printf("%d - %s - Done: %t \n ", i, item.Task, item.Done)
+	table := simpletable.New()
+	table.Header = &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: "#"},
+			{Align: simpletable.AlignCenter, Text: "Task"},
+			{Align: simpletable.AlignCenter, Text: "Done?"},
+			{Align: simpletable.AlignRight, Text: "CreatedAt"},
+			{Align: simpletable.AlignRight, Text: "CompetedAt"},
+		},
 	}
+
+	var cells [][]*simpletable.Cell
+
+	for idx, item := range *t {
+		idx++
+		cells = append(cells, *&[]*simpletable.Cell{
+			{Text: fmt.Sprintf("%d", idx)},
+			{Text: item.Task},
+			{Text: fmt.Sprintf("%t", item.Done)},
+			{Text: item.CreatedAt.Format(time.RFC822)},
+			{Text: item.CompetedAt.Format(time.RFC822)},
+		})
+	}
+
+	table.Body = &simpletable.Body{Cells: cells}
+
+	table.Footer = &simpletable.Footer{Cells: []*simpletable.Cell{
+		{Align: simpletable.AlignCenter, Span: 5, Text: "Your todos are here"},
+	}}
+
+	table.SetStyle(simpletable.StyleUnicode)
+
+	table.Println()
 }
